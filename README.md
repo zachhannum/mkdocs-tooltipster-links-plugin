@@ -2,6 +2,8 @@
 
 An MkDocs plugin that adds tooltips to preview the content of page links using tooltipster
 
+![demo](demo/mkdocs_tooltipster_links_demo.gif)
+
 ## Setup
 
 ### Install the Plugin
