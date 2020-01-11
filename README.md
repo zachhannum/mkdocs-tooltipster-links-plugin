@@ -29,10 +29,10 @@ Download Tooltipster and add the css and javascript to `mkdocs.yml`:
 
 ```yml
 extra_css:
-	- css/tooltipster.bundle.min.css
+  - css/tooltipster.bundle.min.css
 
 extra_javascript:
-	- js/tooltipster.bundle.js  
+  - js/tooltipster.bundle.js  
 ```
 
 Create custom directory and `main.html` file for overriding the `extra_head` template block
@@ -58,8 +58,8 @@ Add the following to `main.html`:
 Add the custom directory to `mkdocs.yml`:
 ```yml
 theme:
-	name: mkdocs
-	custom_dir: theme
+  name: mkdocs
+  custom_dir: theme
 ```
 
 Add additonal css to the site (either in a new css file or existing one):
