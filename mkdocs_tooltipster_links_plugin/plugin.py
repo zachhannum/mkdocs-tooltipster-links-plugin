@@ -15,7 +15,7 @@ import codecs
 class TooltipsterLinks(BasePlugin):
 
     config_scheme = (
-        ('param', config_options.Type(mkdocs_utils.string_types, default='')),
+        ('param', config_options.Type(str, default='')),
     )
 
     def __init__(self):
@@ -28,9 +28,15 @@ class TooltipsterLinks(BasePlugin):
         for link in soup.findAll("a", {"class" : None}, href=lambda href: href is not None and not href.startswith('http') ):
             if link['href'][0] == ".":
                 md_src_path = link['href'][3:-1] + ".md"
+                md_link_path = os.path.join(os.path.dirname(page.file.abs_src_path), md_src_path )
+            elif link['href'][0] == "/":
+                md_src_path = link['href'][1:] + ".md"
+                print(md_src_path)
+                md_link_path = os.path.join(config['docs_dir'],md_src_path)
             else:
-                md_src_path = link['href'][:-1] + ".md"
-            md_link_path = os.path.join(os.path.dirname(page.file.abs_src_path), md_src_path )
+                md_src_path = link['href'][:-1] +  ".md"
+                md_link_path = os.path.join(os.path.dirname(page.file.abs_src_path), md_src_path )
+            
             if os.path.isfile(md_link_path):
 
                 # This block is getting the markdown from the link, converting to html
