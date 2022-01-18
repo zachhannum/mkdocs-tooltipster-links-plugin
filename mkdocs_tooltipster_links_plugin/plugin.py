@@ -1,15 +1,15 @@
+import codecs
 import os
 import re
+from glob import iglob
 from pathlib import Path
-from rich import print
+from urllib.parse import unquote
+
+import frontmatter
+import markdown
+from bs4 import BeautifulSoup
 from mkdocs.config import config_options
 from mkdocs.plugins import BasePlugin
-from urllib.parse import unquote
-from bs4 import BeautifulSoup
-import markdown
-import codecs
-import frontmatter
-from glob import iglob
 
 
 def tooltip(md_link_path, link, soup):
@@ -96,9 +96,6 @@ class TooltipsterLinks(BasePlugin):
             if os.path.isfile(md_link_path):
                 soup = tooltip(md_link_path, link, soup)
             else:
-                if "Introduction" in str(md_link_path):
-                    print(md_link_path)
-                    print(all_docs)
                 link_found = search_doc(md_link_path, all_docs)
                 if link_found != 0:
                     soup = tooltip(link_found, link, soup)
