@@ -72,7 +72,7 @@ class TooltipsterLinks(BasePlugin):
         for link in soup.findAll(
             "a",
             {"class": None},
-            href=lambda href: href is not None and not href.startswith("http"),
+            href=lambda href: href is not None and not href.startswith("http") and not 'www' in href,
         ):
             if len(link['href']) > 0:
                 if link["href"][0] == ".":
