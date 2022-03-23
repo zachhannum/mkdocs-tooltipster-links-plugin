@@ -1,6 +1,5 @@
 mkdocs==1.2.3
-
 setuptools==60.5.0
 Markdown~=3.3.6
 beautifulsoup4~=4.10.0
-frontmatter~=3.0.7
+python-frontmatter~=3.0.7
