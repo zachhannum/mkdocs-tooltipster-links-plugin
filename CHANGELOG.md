@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.2 (2022-03-23)
+### Fix
+* Requirements error ([`fd02770`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/fd027701b0036a5e728b3df7696dc10a4715acc0))
+
 ## v0.2.1 (2022-03-23)
 
 
