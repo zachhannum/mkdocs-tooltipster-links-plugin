@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 
 version="0.2.1"
+
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 with open("requirements.txt") as f:
@@ -10,6 +11,7 @@ setup(
     version=version,
     description="An MkDocs plugin",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     keywords="mkdocs, preview, tooltipster, tooltipst",
     url="https://github.com/Mara-Li/mkdocs-tooltipster-links-plugin",
     author="Mara-Li",
