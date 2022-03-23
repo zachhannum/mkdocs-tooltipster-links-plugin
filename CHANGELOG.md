@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.1 (2022-03-23)
+
+
 ## v0.2.0 (2022-03-23)
 ### Feature
 * Adding auto update ([`5c8b8ac`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/5c8b8ac8413b8fef8961ac84cc599cec7bc6371a))
