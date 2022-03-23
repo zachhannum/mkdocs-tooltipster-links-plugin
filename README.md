@@ -1,3 +1,5 @@
+_Fork of midnightprioriem/mkdocs-tooltipster-links-plugin_
+
 # mkdocs-tooltipster-links-plugin
 
 An MkDocs plugin that adds tooltips to preview the content of page links using tooltipster
@@ -10,7 +12,7 @@ An MkDocs plugin that adds tooltips to preview the content of page links using t
 
 Install the plugin using pip:
 
-`pip install mkdocs-tooltipster-links-plugin`
+`pip install mkdocs-preview-links-plugin`
 
 Activate the plugin in `mkdocs.yml`:
 ```yaml
