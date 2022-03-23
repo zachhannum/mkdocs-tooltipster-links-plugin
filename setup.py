@@ -1,21 +1,22 @@
 from setuptools import setup, find_packages
 
+version="0.1.2"
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+with open("requirements.txt") as f:
+    required = f.read().readlines()
 setup(
-    name="mkdocs-tooltipster-links-plugin",
-    version="0.1.1",
+    name="mkdocs-preview-links-plugin",
+    version=version,
     description="An MkDocs plugin",
-    long_description=(
-        "An MkDocs plugin that adds tooltips to preview the content of page links using"
-        " tooltipster"
-    ),
-    keywords="mkdocs",
-    url="https://github.com/midnightprioriem/mkdocs-tooltipster-links-plugin",
-    download_url="https://github.com/midnightprioriem/mkdocs-tooltipster-links-plugin/archive/v_010.tar.gz",
-    author="Zach Hannum",
-    author_email="zacharyhannum@gmail.com",
+    long_description=long_description,
+    keywords="mkdocs, preview, tooltipster, tooltipst",
+    url="https://github.com/Mara-Li/mkdocs-tooltipster-links-plugin",
+    author="Mara-Li",
+    author_email="mara-li@outlook.fr",
     license="MIT",
     python_requires=">=2.7",
-    install_requires=["mkdocs>=1.0.4", "beautifulsoup4>=4.8.2"],
+    install_requires=required,
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
