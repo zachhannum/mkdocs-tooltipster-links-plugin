@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2022-03-30)
+### Feature
+* Adding wikilinks reading ([`15ec270`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/15ec2700f626dc64415fc2457eed25ee49bfe2df))
+
+### Documentation
+* Add description ([`2254bab`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/2254bab6e00fcc78c2235e11994014e97f047610))
+
 ## v0.2.3 (2022-03-23)
 
 
