@@ -160,5 +160,4 @@ class TooltipsterLinks(BasePlugin):
                     link_found = search_doc(md_link_path, all_docs)
                     if link_found != 0:
                         soup = tooltip(link_found, link, soup, config)
-        souped_html = soup.prettify(soup.original_encoding)
-        return souped_html
+        return soup.original_encoding
