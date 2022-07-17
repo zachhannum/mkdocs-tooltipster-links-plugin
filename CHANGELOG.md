@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.2 (2022-07-17)
+
+
 ## v0.3.1 (2022-06-19)
 ### Fix
 * Prettify breake other plugin ([`4d329b8`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/4d329b88ee2d3d37e1a311fbeba10b63d3a55232))
