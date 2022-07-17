@@ -3,4 +3,4 @@ setuptools
 Markdown
 beautifulsoup4
 python-frontmatter
-mdx-wikilink-plus
+mdx-wikilink-plus-fork
