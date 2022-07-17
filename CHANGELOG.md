@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2022-07-17)
+### Feature
+* Adding compatibility with callouts/custom tags attributes ([`aac81e3`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/aac81e39d7f659e745673d344d375e7c19838647))
+
 ## v0.3.2 (2022-07-17)
 
 
