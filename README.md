@@ -51,7 +51,7 @@ Add the following to `main.html`:
 {% extends "base.html" %}
 
 {% block extrahead %}
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
                 $(document).ready(function() {
                     $('.link-tooltip').tooltipster();
@@ -68,11 +68,37 @@ theme:
 
 Add additonal css to the site (either in a new css file or existing one):
 ```css
-.tooltip_templates { display: none; }
+.tooltipster-base {
+    max-width: 50%;
+}
+.tooltipster-content img.wikilink {
+    max-width: 10%;
+}
+.tooltip_templates {
+    display: none;
+}
 ```
 
 ## Usage
 Once configured property, tooltips-links should create tooltips automagically!
+
+Some infos :
+- The plugin is not compatible with `navigation.instant` in Material Theme. For this theme, some styling are disponible in the [docs/material.css](docs/material.css) file.
+- The text is cut if it is too long (>400 characters)
+
+## Other
+In you config file to add compatibility for these plugins :
+- [mkdocs callouts](https://github.com/sondregronas/mkdocs-callouts)
+- [mkdocs custom tags attributes](https://github.com/Mara-Li/mkdocs-custom-tags-attributes)
+
+Just edit your config file and add the following:
+```yml
+plugins:
+  - search
+  - tooltipster-links:
+      callouts: true
+      custom-attributes: 'assets/css/custom_attributes.css'
+```
 
 ## See Also
 

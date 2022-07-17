@@ -3,46 +3,112 @@ import os
 import re
 from glob import iglob
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 import frontmatter
 import markdown
+import ast
 from bs4 import BeautifulSoup
 from mkdocs.config import config_options
 from mkdocs.plugins import BasePlugin
 from mdx_wikilink_plus.mdx_wikilink_plus import WikiLinkPlusExtension
-
+from mkdocs_callouts.plugin import CalloutsPlugin
+from custom_attributes.plugin import read_custom, convert_hashtags, convert_text_attributes
 
 def mini_ez_links(urlo, base, end, url_whitespace, url_case):
-    base, url_blog = base
-    url_blog_path = [x for x in url_blog.split("/") if len(x) > 0]
+    base, url_blog, md_link_path = base
+    url_blog_path = [x for x in url_blog.split('/') if len(x) > 0]
     url_blog_path = url_blog_path[len(url_blog_path) - 1]
-    all_docs = [
-        re.sub(rf"(.*){url_blog_path}/docs/*", "", x.replace("\\", "/")).replace(
-            ".md", ""
-        )
-        for x in iglob(str(base) + os.sep + "**", recursive=True)
-        if os.path.isfile(x)
-    ]
-    file_name = urlo[2].replace("index", "")
-    file_found = [
-        "/" + x for x in all_docs if os.path.basename(x) == file_name or x == file_name
-    ]
-    if file_found:
-        file_path = file_found[0].replace(base, "")
-        url = file_path.replace("\\", "/").replace(".md", "")
-        url = url.replace("//", "/")
-        url = "/" + url_blog_path + url
-    else:
-        url = file_name
+    internal_link = Path(md_link_path, urlo[2]).resolve()
+    if os.path.isfile(internal_link):
+        internal_link = str(internal_link).replace(base, '')
+    else:  # fallback to searching
+        if urlo[2].endswith('.md'):
+            internal_link = str(search_file_in_documentation(
+                Path(urlo[2]).resolve(), Path(md_link_path).parent))
+        if not os.path.isfile(internal_link):  # manual search
+            file_name = urlo[2].replace('index', '')
+            file_name = file_name.replace('../', '')
+            file_name = file_name.replace('./', '')
+
+            all_docs = [
+                re.sub(rf"(.*)({url_blog_path})?/docs/*", '', x.replace('\\', '/')).replace(
+                    '.md', ''
+                )
+                for x in iglob(str(base) + os.sep + '**', recursive=True)
+                if os.path.isfile(x)
+            ]
+            file_found = [
+                '/' + x for x in all_docs if os.path.basename(x) == file_name or x == file_name
+            ]
+            if file_found:
+                internal_link = file_found[0]
+            else:
+                return file_name
+    file_path = internal_link.replace(base, '')
+    url = file_path.replace('\\', '/').replace('.md', '')
+    url = url.replace('//', '/')
+    url = url_blog[:-1] + quote(url)
+    if not url.startswith(('https:/', 'http:/')):
+        url = 'https://' + url
+    if not url.endswith('/') and not url.endswith(('png', 'jpg', 'jpeg', 'gif', 'webm')):
+        url = url + '/'
     return url
 
 
-def tooltip(md_link_path, link, soup, config):
+def strip_comments(markdown):
+    file_content = markdown.split('\n')
+    markdown = ''
+    for line in file_content:
+        if not re.search(r'%%(.*)%%', line) or not line.startswith('%%') or not line.endswith('%%'):
+            markdown += line + '\n'
+    markdown = re.sub(r'%%(.*)%%', '', markdown, flags=re.DOTALL)
+    return markdown
+
+def search_in_file(citation_part: str, contents: str):
+    """
+    Search a part in the file
+    Args:
+        citation_part: The part to find
+        contents: The file contents
+    Returns: the part found
+    """
+    data = contents.split('\n')
+    if '#' not in citation_part:
+        # All text citation
+        return contents
+    elif '#' in citation_part and not '^' in citation_part:
+        # cite from title
+        sub_section = []
+        citation_part = citation_part.replace('-', ' ').replace('#', '# ').upper()
+        heading = 0
+        for i in data:
+            if citation_part in i.upper() and i.startswith('#'):
+                heading = i.count('#') * (-1)
+                sub_section.append([i])
+            elif heading != 0:
+                inverse = i.count('#') * (-1)
+                if inverse == 0 or heading > inverse:
+                    sub_section.append([i])
+                elif inverse >= heading:
+                    break
+        sub_section = [x for y in sub_section for x in y]
+
+        sub_section = '\n'.join(sub_section)
+        return sub_section
+    elif '#^' in citation_part:
+        # cite from block
+        citation_part = citation_part.replace('#', '').upper()
+        for i in data:
+            if citation_part in i.upper():
+                return i.replace(citation_part, '')
+    return []
+
+def tooltip(md_link_path, link, soup, config, callouts, custom_attr):
     docs = config["docs_dir"]
     url = config["site_url"]
     md_config = {
         "mdx_wikilink_plus": {
-            "base_url": (docs, url),
+            "base_url": (docs, url, md_link_path),
             "build_url": mini_ez_links,
             "image_class": "wikilink",
         }
@@ -50,9 +116,19 @@ def tooltip(md_link_path, link, soup, config):
     input_file = codecs.open(str(md_link_path), mode="r", encoding="utf-8")
     text = input_file.read()
     contents = frontmatter.loads(text).content
-    # remove links
-    contents = re.sub("!", "", contents)
-    contents = re.sub("\.(png|jpeg|jpg|webm|gif)", "", contents)
+    citation = get_citation_part(link)
+    contents = search_in_file(citation, contents)
+    if callouts:
+        contents = CalloutsPlugin().on_page_markdown(contents, None, None, None)
+    if len(custom_attr) > 0:
+        config_attr = {
+            'file': custom_attr,
+            'docs_dir': docs
+        }
+        contents = convert_text_attributes(contents, config_attr)
+    contents = strip_comments(contents)
+    if len(contents) > 400:
+        contents = contents[:400] + '...'
     html = markdown.markdown(
         contents,
         extensions=[
@@ -68,8 +144,11 @@ def tooltip(md_link_path, link, soup, config):
         ],
     )
     link_soup = BeautifulSoup(html, "html.parser")
-    header = link_soup.find("h1")
-    preview = link_soup.find("p")
+    link_soup=BeautifulSoup(
+            str(link_soup).replace(
+                    '!<img class="wikilink', '<img class="wikilink'
+                ), "html.parser")
+    preview = link_soup.findAll(["p", "li"])
     if link.contents:
         tooltip_id = link.contents[0].strip().replace(" ", "") + "_tooltip_id"
         tooltip_id = re.sub(r"\W+", "", tooltip_id)
@@ -79,29 +158,39 @@ def tooltip(md_link_path, link, soup, config):
         tooltip_template["class"] = ["tooltip_templates"]
         tooltip_content = soup.new_tag("div", id=tooltip_id)
         tooltip_template.append(tooltip_content)
-        if header:
-            tooltip_content.append(header)
+        preview = '\n'.join([str(i) for i in list(preview)])
+        preview = BeautifulSoup(preview, "html.parser")
         if preview:
             tooltip_content.append(preview)
         soup.body.append(tooltip_template)
     return soup
 
-
-def search_doc(md_link_path, all_docs):
-
-    if os.path.basename(md_link_path) == ".md":
-        md_link_path = str(md_link_path).replace(f"{os.sep}.md", f"{os.sep}index.md")
+def create_link(link):
+    if link.endswith('/'):
+        return link[:-1] + '.md'
     else:
-        md_link_path = str(md_link_path).replace(f"{os.sep}.md", "")
-    file = [x for x in all_docs if Path(x) == Path(md_link_path)]
-    if len(file) > 0:
-        return file[0]
+        return link + '.md'
+
+def search_file_in_documentation(link: Path | str, config_dir: Path):
+    file_name = os.path.basename(link)
+    if not file_name.endswith('.md'):
+        file_name = file_name + '.md'
+    for p in config_dir.rglob(f"*{file_name}"):
+        return p
     return 0
 
+def get_citation_part(link):
+    if '#' in link.get('href', ''):
+        citation_part = re.sub('^(.*)#', '#', link['href'])
+    else:
+        citation_part = link.get('href', '')
+    return citation_part
 
 class TooltipsterLinks(BasePlugin):
-
-    config_scheme = (("param", config_options.Type(str, default="")),)
+    config_scheme = (
+        ('callouts', config_options.Type(str | bool, default='false')),
+        ('custom-attributes', config_options.Type(str, default=''))
+    )
 
     def __init__(self):
         self.enabled = True
@@ -111,11 +200,9 @@ class TooltipsterLinks(BasePlugin):
         soup = BeautifulSoup(output_content, "html.parser")
         docs = Path(config["docs_dir"])
         md_link_path = ""
-        all_docs = [
-            x
-            for x in iglob(str(docs) + os.sep + "**", recursive=True)
-            if x.endswith(".md")
-        ]
+        callout = self.config['callouts']
+        if isinstance(callout, str):
+            callout = ast.literal_eval(callout.title())
         for link in soup.findAll(
             "a",
             {"class": None},
@@ -125,39 +212,41 @@ class TooltipsterLinks(BasePlugin):
         ):
             if len(link["href"]) > 0:
                 if link["href"][0] == ".":
-                    md_src_path = link["href"][3:-1] + ".md"
-                    md_src_path = md_src_path.replace(".m.md", ".md")
-                    md_link_path = os.path.join(
-                        os.path.dirname(page.file.abs_src_path), md_src_path
-                    )
-                    md_link_path = Path(unquote(md_link_path)).resolve()
+                    md_src = create_link(unquote(link['href']))
+                    md_link_path = Path(
+                        os.path.dirname(page.file.abs_src_path), md_src).resolve()
+                    if link["href"].startswith("./#"):
+                        md_link_path = page.file.abs_src_path
+                    if not os.path.isfile(md_link_path):
+                        md_link_path = search_file_in_documentation(md_link_path, docs)
 
                 elif link["href"][0] == "/":
-                    md_src_path = link["href"][1:] + ".md"
-                    md_link_path = os.path.join(config["docs_dir"], md_src_path)
+                    md_src_path = create_link(unquote(link['href']))
+                    md_link_path = os.path.join(
+                        config['docs_dir'], md_src_path)
                     md_link_path = Path(unquote(md_link_path)).resolve()
 
                 elif link["href"][0] != "#":
-                    md_src_path = link["href"][:-1] + ".md"
+                    md_src_path = create_link(unquote(link['href']))
+
                     md_link_path = os.path.join(
                         os.path.dirname(page.file.abs_src_path), md_src_path
                     )
                     md_link_path = Path(unquote(md_link_path)).resolve()
             else:
-                md_src_path = link["href"][:-1] + ".md"
+                md_src_path = create_link(unquote(link['href']))
                 md_link_path = os.path.join(
                     os.path.dirname(page.file.abs_src_path), md_src_path
                 )
                 md_link_path = Path(unquote(md_link_path)).resolve()
-
             if md_link_path != "" and len(link["href"]) > 0:
                 md_link_path = re.sub("#(.*)\.md", ".md", str(md_link_path))
                 md_link_path = Path(md_link_path)
 
                 if os.path.isfile(md_link_path):
-                    soup = tooltip(md_link_path, link, soup, config)
+                    soup = tooltip(md_link_path, link, soup, config, callout, self.config['custom-attributes'])
                 else:
-                    link_found = search_doc(md_link_path, all_docs)
+                    link_found = search_file_in_documentation(md_link_path, docs)
                     if link_found != 0:
-                        soup = tooltip(link_found, link, soup, config)
-        return soup.original_encoding
+                        soup = tooltip(link_found, link, soup, config, callout, self.config['custom-attributes'])
+        return str(soup)
