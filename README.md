@@ -84,7 +84,7 @@ Once configured property, tooltips-links should create tooltips automagically!
 
 The plugin is not compatible with `navigation.instant` in Material Theme. For this theme, some styling are disponible in the [docs/material.css](docs/material.css) file.
 
-## Custom configuration
+### Custom configuration
 In you config file to add compatibility for these plugins :
 - [mkdocs callouts](https://github.com/sondregronas/mkdocs-callouts)
 - [mkdocs custom tags attributes](https://github.com/Mara-Li/mkdocs-custom-tags-attributes)
@@ -98,7 +98,7 @@ plugins:
       custom-attributes: 'assets/css/custom_attributes.css'
 ```
 
-Moreover, you can configure the max characters limits and the characters used after truncate :
+Moreover, you can configure the max characters limits and the characters used after truncate (400 used by default):
 
 ```yml
 plugins:
