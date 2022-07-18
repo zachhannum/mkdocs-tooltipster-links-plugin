@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.0 (2022-07-18)
+### Feature
+* Configuration about truncate char ([`0858618`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/0858618eb7d3f4338227168b50972a64a805d2e4))
+
+### Documentation
+* Adjust css ([`0d4d26d`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/0d4d26d977ceac52365d7e8ff137471186d90d26))
+
 ## v0.4.0 (2022-07-17)
 ### Feature
 * Adding compatibility with callouts/custom tags attributes ([`aac81e3`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/aac81e39d7f659e745673d344d375e7c19838647))
