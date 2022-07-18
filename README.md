@@ -82,11 +82,9 @@ Add additonal css to the site (either in a new css file or existing one):
 ## Usage
 Once configured property, tooltips-links should create tooltips automagically!
 
-Some infos :
-- The plugin is not compatible with `navigation.instant` in Material Theme. For this theme, some styling are disponible in the [docs/material.css](docs/material.css) file.
-- The text is cut if it is too long (>400 characters)
+The plugin is not compatible with `navigation.instant` in Material Theme. For this theme, some styling are disponible in the [docs/material.css](docs/material.css) file.
 
-## Other
+## Custom configuration
 In you config file to add compatibility for these plugins :
 - [mkdocs callouts](https://github.com/sondregronas/mkdocs-callouts)
 - [mkdocs custom tags attributes](https://github.com/Mara-Li/mkdocs-custom-tags-attributes)
@@ -98,6 +96,16 @@ plugins:
   - tooltipster-links:
       callouts: true
       custom-attributes: 'assets/css/custom_attributes.css'
+```
+
+Moreover, you can configure the max characters limits and the characters used after truncate :
+
+```yml
+plugins:
+  - search
+  - tooltipster-links:
+      max-characters: 400 #use 0 or 1 for no limit
+      truncate-characters: '...'
 ```
 
 ## See Also

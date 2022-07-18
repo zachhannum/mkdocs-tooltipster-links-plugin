@@ -3,16 +3,20 @@ import os
 import re
 from glob import iglob
 from pathlib import Path
+from typing import Dict
 from urllib.parse import unquote, quote
 import frontmatter
 import markdown
 import ast
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 from mkdocs.config import config_options
+from mkdocs.config.base import Config
+from mkdocs.structure.pages import Page
 from mkdocs.plugins import BasePlugin
 from mdx_wikilink_plus.mdx_wikilink_plus import WikiLinkPlusExtension
 from mkdocs_callouts.plugin import CalloutsPlugin
-from custom_attributes.plugin import read_custom, convert_hashtags, convert_text_attributes
+from custom_attributes.plugin import convert_text_attributes
 
 def mini_ez_links(urlo, base, end, url_whitespace, url_case):
     base, url_blog, md_link_path = base
@@ -103,9 +107,17 @@ def search_in_file(citation_part: str, contents: str):
                 return i.replace(citation_part, '')
     return []
 
-def tooltip(md_link_path, link, soup, config, callouts, custom_attr):
+def tooltip(md_link_path: Path, link:Tag, soup: BeautifulSoup, config: Config, plugin_config: Dict):
+    '''
+    Create a tooltip for the link
+    '''
     docs = config["docs_dir"]
     url = config["site_url"]
+    callouts = plugin_config["callout"]
+    custom_attr = plugin_config["custom_attr"]
+    max_char = plugin_config["max_char"]
+    cut_contents = plugin_config["cut_contents"]
+
     md_config = {
         "mdx_wikilink_plus": {
             "base_url": (docs, url, md_link_path),
@@ -127,8 +139,8 @@ def tooltip(md_link_path, link, soup, config, callouts, custom_attr):
         }
         contents = convert_text_attributes(contents, config_attr)
     contents = strip_comments(contents)
-    if len(contents) > 400:
-        contents = contents[:400] + '...'
+    if max_char > 1 and len(contents) > max_char:
+        contents = contents[:int(max_char)] + cut_contents
     html = markdown.markdown(
         contents,
         extensions=[
@@ -166,12 +178,21 @@ def tooltip(md_link_path, link, soup, config, callouts, custom_attr):
     return soup
 
 def create_link(link):
+    """
+    Fix the ends of a file link with adding .md if not present
+    """
     if link.endswith('/'):
         return link[:-1] + '.md'
     else:
         return link + '.md'
 
-def search_file_in_documentation(link: Path | str, config_dir: Path):
+def search_file_in_documentation(link: Path | str, config_dir: Path) -> Path|int:
+    """
+    Search a file in the documentation
+    Returns: 
+        The file path if found
+        0 otherwise
+    """
     file_name = os.path.basename(link)
     if not file_name.endswith('.md'):
         file_name = file_name + '.md'
@@ -179,7 +200,10 @@ def search_file_in_documentation(link: Path | str, config_dir: Path):
         return p
     return 0
 
-def get_citation_part(link):
+def get_citation_part(link: Tag) -> str|list[str]|None:
+    """
+    Get the citation part of a link if # in the href
+    """
     if '#' in link.get('href', ''):
         citation_part = re.sub('^(.*)#', '#', link['href'])
     else:
@@ -189,14 +213,16 @@ def get_citation_part(link):
 class TooltipsterLinks(BasePlugin):
     config_scheme = (
         ('callouts', config_options.Type(str | bool, default='false')),
-        ('custom-attributes', config_options.Type(str, default=''))
+        ('custom-attributes', config_options.Type(str, default='')),
+        ('max-characters', config_options.Type(int, default=400)),
+        ('truncate-character', config_options.Type(str, default='...')),
     )
 
     def __init__(self):
         self.enabled = True
         self.total_time = 0
 
-    def on_post_page(self, output_content, page, config):
+    def on_post_page(self, output_content: str, page: Page, config: Config):        
         soup = BeautifulSoup(output_content, "html.parser")
         docs = Path(config["docs_dir"])
         md_link_path = ""
@@ -242,11 +268,15 @@ class TooltipsterLinks(BasePlugin):
             if md_link_path != "" and len(link["href"]) > 0:
                 md_link_path = re.sub("#(.*)\.md", ".md", str(md_link_path))
                 md_link_path = Path(md_link_path)
+                plugin_config = {"custom_attr": self.config['custom-attributes'],
+                "max_char": int(self.config['max-characters']),
+                "cut_contents": self.config['truncate-character'],
+                "callout": callout}
 
                 if os.path.isfile(md_link_path):
-                    soup = tooltip(md_link_path, link, soup, config, callout, self.config['custom-attributes'])
+                    soup = tooltip(md_link_path, link, soup, config,plugin_config)
                 else:
                     link_found = search_file_in_documentation(md_link_path, docs)
                     if link_found != 0:
-                        soup = tooltip(link_found, link, soup, config, callout, self.config['custom-attributes'])
+                        soup = tooltip(link_found, link, soup, config, plugin_config)
         return str(soup)
