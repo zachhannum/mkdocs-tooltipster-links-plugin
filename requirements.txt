@@ -3,6 +3,6 @@ setuptools
 Markdown
 beautifulsoup4
 python-frontmatter
-mdx-wikilink-plus-fork
+mdx-wikilink-plus
 mkdocs-callouts
 mkdocs-custom-tags-attributes
