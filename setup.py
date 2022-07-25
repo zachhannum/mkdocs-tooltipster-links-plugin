@@ -17,7 +17,7 @@ setup(
     author="Mara-Li",
     author_email="mara-li@outlook.fr",
     license="MIT",
-    python_requires=">=2.7",
+    python_requires=">=3.8",
     install_requires=required,
     classifiers=[
         "Development Status :: 4 - Beta",

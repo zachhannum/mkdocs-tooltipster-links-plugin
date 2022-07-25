@@ -3,7 +3,7 @@ import os
 import re
 from glob import iglob
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Union, List, Tuple
 from urllib.parse import unquote, quote
 import frontmatter
 import markdown
@@ -186,7 +186,7 @@ def create_link(link):
     else:
         return link + '.md'
 
-def search_file_in_documentation(link: Path | str, config_dir: Path) -> Path|int:
+def search_file_in_documentation(link: Union[Path, str], config_dir: Path) -> Union[Path,int]:
     """
     Search a file in the documentation
     Returns: 
@@ -200,7 +200,7 @@ def search_file_in_documentation(link: Path | str, config_dir: Path) -> Path|int
         return p
     return 0
 
-def get_citation_part(link: Tag) -> str|list[str]|None:
+def get_citation_part(link: Tag) -> Union[str,List[str],None]:
     """
     Get the citation part of a link if # in the href
     """
@@ -210,9 +210,53 @@ def get_citation_part(link: Tag) -> str|list[str]|None:
         citation_part = link.get('href', '')
     return citation_part
 
+def href_relative_link(link, page, docs):
+    md_src = create_link(unquote(link['href']))
+    md_link_path = Path(os.path.dirname(page.file.abs_src_path), md_src).resolve()
+    if link["href"].startswith("./#"):
+        md_link_path = page.file.abs_src_path
+    if not os.path.isfile(md_link_path):
+        md_link_path = search_file_in_documentation(md_link_path, docs)
+    return md_link_path
+
+def href_resolve(link, config):
+    md_src_path = create_link(unquote(link['href']))
+    md_link_path = os.path.join(
+        config['docs_dir'], md_src_path)
+    md_link_path = Path(unquote(md_link_path)).resolve()
+    return md_link_path
+
+def href_header(link, page):
+    md_src_path = create_link(unquote(link['href']))
+    md_link_path = os.path.join(
+        os.path.dirname(page.file.abs_src_path), md_src_path
+    )
+    md_link_path = Path(unquote(md_link_path)).resolve()
+    return md_link_path
+
+def href_unquote(link, page):
+    md_src_path = create_link(unquote(link['href']))
+    md_link_path = os.path.join(
+        os.path.dirname(page.file.abs_src_path), md_src_path
+    )
+    md_link_path = Path(unquote(md_link_path)).resolve()
+    return md_link_path
+
+def convert_text_to_tooltip(link, md_link_path, config, plugin_config, soup, docs):
+    if md_link_path != "" and len(link["href"]) > 0:
+        md_link_path = re.sub("#(.*)\.md", ".md", str(md_link_path))
+        md_link_path = Path(md_link_path)
+        if os.path.isfile(md_link_path):
+            return tooltip(md_link_path, link, soup, config,plugin_config)
+        else:
+            link_found = search_file_in_documentation(md_link_path, docs)
+            if link_found != 0:
+                return tooltip(link_found, link, soup, config, plugin_config)
+    return soup
+
 class TooltipsterLinks(BasePlugin):
     config_scheme = (
-        ('callouts', config_options.Type(str | bool, default='false')),
+        ('callouts', config_options.Type(bool, default=False)),
         ('custom-attributes', config_options.Type(str, default='')),
         ('max-characters', config_options.Type(int, default=400)),
         ('truncate-character', config_options.Type(str, default='...')),
@@ -227,8 +271,10 @@ class TooltipsterLinks(BasePlugin):
         docs = Path(config["docs_dir"])
         md_link_path = ""
         callout = self.config['callouts']
-        if isinstance(callout, str):
-            callout = ast.literal_eval(callout.title())
+        plugin_config = {"custom_attr": self.config['custom-attributes'],
+            "max_char": int(self.config['max-characters']),
+            "cut_contents": self.config['truncate-character'],
+            "callout": callout}
         for link in soup.findAll(
             "a",
             {"class": None},
@@ -238,45 +284,12 @@ class TooltipsterLinks(BasePlugin):
         ):
             if len(link["href"]) > 0:
                 if link["href"][0] == ".":
-                    md_src = create_link(unquote(link['href']))
-                    md_link_path = Path(
-                        os.path.dirname(page.file.abs_src_path), md_src).resolve()
-                    if link["href"].startswith("./#"):
-                        md_link_path = page.file.abs_src_path
-                    if not os.path.isfile(md_link_path):
-                        md_link_path = search_file_in_documentation(md_link_path, docs)
-
+                    md_link_path = href_relative_link(link, page, docs)
                 elif link["href"][0] == "/":
-                    md_src_path = create_link(unquote(link['href']))
-                    md_link_path = os.path.join(
-                        config['docs_dir'], md_src_path)
-                    md_link_path = Path(unquote(md_link_path)).resolve()
-
+                   md_link_path=href_resolve(link, config)
                 elif link["href"][0] != "#":
-                    md_src_path = create_link(unquote(link['href']))
-
-                    md_link_path = os.path.join(
-                        os.path.dirname(page.file.abs_src_path), md_src_path
-                    )
-                    md_link_path = Path(unquote(md_link_path)).resolve()
+                    md_link_path=href_header(link, page)
             else:
-                md_src_path = create_link(unquote(link['href']))
-                md_link_path = os.path.join(
-                    os.path.dirname(page.file.abs_src_path), md_src_path
-                )
-                md_link_path = Path(unquote(md_link_path)).resolve()
-            if md_link_path != "" and len(link["href"]) > 0:
-                md_link_path = re.sub("#(.*)\.md", ".md", str(md_link_path))
-                md_link_path = Path(md_link_path)
-                plugin_config = {"custom_attr": self.config['custom-attributes'],
-                "max_char": int(self.config['max-characters']),
-                "cut_contents": self.config['truncate-character'],
-                "callout": callout}
-
-                if os.path.isfile(md_link_path):
-                    soup = tooltip(md_link_path, link, soup, config,plugin_config)
-                else:
-                    link_found = search_file_in_documentation(md_link_path, docs)
-                    if link_found != 0:
-                        soup = tooltip(link_found, link, soup, config, plugin_config)
+                md_link_path = href_unquote(link, page)
+            soup = convert_text_to_tooltip(link, md_link_path, config, plugin_config, soup, docs)
         return str(soup)

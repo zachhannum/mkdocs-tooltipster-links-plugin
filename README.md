@@ -4,7 +4,7 @@ _Fork of midnightprioriem/mkdocs-tooltipster-links-plugin_
 
 An MkDocs plugin that adds tooltips to preview the content of page links using tooltipster
 
-![demo](demo/mkdocs_tooltipster_links_demo.gif)
+![demo](docs/mkdocs_tooltipster_links_demo.gif)
 
 ## Setup
 
