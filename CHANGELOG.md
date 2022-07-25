@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.0 (2022-07-25)
+### Documentation
+* Update readme ([`d4989e5`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/d4989e560428814f4a1582ccb40686428657e63d))
+
 ## v0.5.0 (2022-07-18)
 ### Feature
 * Configuration about truncate char ([`0858618`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/0858618eb7d3f4338227168b50972a64a805d2e4))
