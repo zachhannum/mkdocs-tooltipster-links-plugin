@@ -280,7 +280,8 @@ class TooltipsterLinks(BasePlugin):
             {"class": None},
             href=lambda href: href is not None
             and not href.startswith("http")
-            and not "www" in href,
+            and not "www" in href
+            and not '://' in href,
         ):
             if len(link["href"]) > 0:
                 if link["href"][0] == ".":
