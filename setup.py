@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = "0.6.1"
+version = "0.6.2"
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -17,7 +17,7 @@ setup(
     author="Mara-Li",
     author_email="mara-li@outlook.fr",
     license="MIT",
-    python_requires=">=3.8",
+    python_requires=">=3.7",
     install_requires=required,
     classifiers=[
         "Development Status :: 4 - Beta",
