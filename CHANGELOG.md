@@ -2,9 +2,6 @@
 
 <!--next-version-placeholder-->
 
-## v0.6.2 (2022-07-28)
-
-
 ## v0.6.1 (2022-07-26)
 ### Fix
 * URI scheme broke ([`54e987e`](https://github.com/Mara-Li/mkdocs-preview-links-plugin/commit/54e987edfc7e4539c027c30ff45db3ebf296ed27))
