@@ -1,3 +1,7 @@
+:warning: THIS REPO IS NOW ARCHIVED
+**PLEASE USE [TOOLTIPS INTERNAL LINKS](https://github.com/ObsidianPublisher/tooltips-internal-link) INSTEAD**
+
+
 _Fork of midnightprioriem/mkdocs-tooltipster-links-plugin_
 
 # mkdocs-tooltipster-links-plugin
